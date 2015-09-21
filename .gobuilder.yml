@@ -1,5 +1,5 @@
 build_matrix:
   general:
     ldflags:
-      - "-X main.ProjectVersion=$(VERSION)"
-      - "-X main.ProjectBuild=$(COMMIT)"
+      - "-X main.ProjectVersion=$(cat VERSION)"
+      - "-X main.ProjectBuild=$(git rev-parse --short HEAD)"
