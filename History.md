@@ -1,4 +1,10 @@
 
+0.1.2 / 2015-09-21
+==================
+
+  * Use proper commands for Version and Build
+  * Printf should end with \n
+
 0.1.1 / 2015-09-21
 ==================
 
