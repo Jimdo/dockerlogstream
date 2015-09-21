@@ -63,5 +63,5 @@ release-patch: semver-bump
 	$(MAKE) -B release
 
 release:
-	git ci -m "Release v$(VERSION)" VERSION
+	git ci -m "Release v$(VERSION)" VERSION History.md
 	git tag "v$(VERSION)"
