@@ -1,0 +1,26 @@
+{
+	"ImportPath": "github.com/Jimdo/dockerlogstream",
+	"GoVersion": "go1.5",
+	"Deps": [
+		{
+			"ImportPath": "github.com/Luzifer/rconfig",
+			"Rev": "0c78105a26af5663b6bb2c5be1fed4ed7d81d687"
+		},
+		{
+			"ImportPath": "github.com/cenkalti/backoff",
+			"Rev": "6c45d6bc1e78d94431dff8fc28a99f20bafa355a"
+		},
+		{
+			"ImportPath": "github.com/fsouza/go-dockerclient",
+			"Rev": "c9ad0ce23f68428421adfc6ced9e6123f54788a5"
+		},
+		{
+			"ImportPath": "github.com/robertkrimen/otto",
+			"Rev": "47082f430885e505c18bbedc3e2b336a968a50dd"
+		},
+		{
+			"ImportPath": "github.com/spf13/pflag",
+			"Rev": "67cbc198fd11dab704b214c1e629a97af392c085"
+		}
+	]
+}
