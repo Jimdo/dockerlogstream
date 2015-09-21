@@ -42,7 +42,7 @@ func (a *SyslogAdapter) Stream(logstream chan *message) {
 	backoff.Retry(func() error {
 		conn, err := a.dialer.Dial("tcp", a.address)
 		if err != nil {
-			fmt.Printf("syslog: Unable to dial to remote address")
+			fmt.Printf("syslog: Unable to dial to remote address\n")
 			return fmt.Errorf("Catch me if you can.")
 		}
 		defer conn.Close()
@@ -76,7 +76,7 @@ func (a *SyslogAdapter) Stream(logstream chan *message) {
 			}
 		}
 
-		fmt.Printf("syslog: I got out of the channel watch. This should never happen.")
+		fmt.Printf("syslog: I got out of the channel watch. This should never happen.\n")
 		return fmt.Errorf("Wat? Why am I here?")
 
 	}, &backoff.ZeroBackOff{})
