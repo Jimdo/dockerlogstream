@@ -1,4 +1,5 @@
 [![License: Apache v2.0](https://badge.luzifer.io/v1/badge?color=5d79b5&title=license&text=Apache+v2.0)](http://www.apache.org/licenses/LICENSE-2.0)
+[![GoBuilder Download](https://badge.luzifer.io/v1/badge?color=5d79b5&title=Download&text=on GoBuilder)](https://gobuilder.me/github.com/Jimdo/dockerlogstream)
 
 
 # Jimdo / dockerlogstream
