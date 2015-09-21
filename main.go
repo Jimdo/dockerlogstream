@@ -11,7 +11,8 @@ import (
 )
 
 var (
-	version = "dev"
+	ProjectVersion = "dev"
+	ProjectBuild   = "HEAD"
 
 	logstream chan *message
 	cfg       config
@@ -43,6 +44,8 @@ func init() {
 }
 
 func main() {
+	log.Printf("Started dockerlogstream %s (%s)", ProjectVersion, ProjectBuild)
+
 	// Connect to Docker socket
 	client, err = docker.NewClient("unix://" + cfg.DockerAPI)
 	if err != nil {
