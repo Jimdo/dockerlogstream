@@ -33,7 +33,7 @@ type config struct {
 	LineConverter      string `flag:"line-converter" default:"lineconverter.js" description:"Sets the JavaScript to compile the log line to be sent"`
 }
 
-func init() {
+func main() {
 	rconfig.Parse(&cfg)
 	logstream = make(chan *message, 5000)
 
@@ -41,9 +41,7 @@ func init() {
 	if err != nil {
 		log.Fatalf("Unable to parse line converter script: %s", err)
 	}
-}
 
-func main() {
 	log.Printf("Started dockerlogstream %s (%s)", ProjectVersion, ProjectBuild)
 
 	// Connect to Docker socket
