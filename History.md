@@ -1,4 +1,9 @@
 
+0.2.0 / 2015-09-23
+==================
+
+  * Implemented a controlling interface for the JS functions
+
 0.1.2 / 2015-09-21
 ==================
 
