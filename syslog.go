@@ -51,11 +51,16 @@ func (a *SyslogAdapter) Stream(logstream chan *message) {
 		for msg := range logstream {
 			b.Reset()
 
-			logline, err := formatLogLine(msg)
+			logline, skipLogLine, err := formatLogLine(msg)
 			if err != nil {
 				fmt.Printf("syslog: Unable to compile log line: %s\n", err)
 				return fmt.Errorf("Catch me if you can.")
 			}
+
+			if skipLogLine {
+				continue
+			}
+
 			fmt.Fprintf(b, "%s\n", logline)
 
 			if err := conn.SetDeadline(time.Now().Add(readWriteTimeout)); err != nil {

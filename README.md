@@ -32,3 +32,29 @@ ExecStart=/usr/local/bin/dockerlogstream --papertrail-endpoint=...
 ```bash
 # docker run -ti -v /var/run/docker.sock:/var/run/docker.sock Jimdo/dockerlogstream --papertrail-endpoint=...
 ```
+
+## JavaScript line formatter
+
+The log line formatting (and filtering) are done by simple JavaScript files. One example for a more complex solution can be found in the `lineconverter.js` file inside this repository.
+
+```javascript
+// We will get some variables set from the Go program:
+// dockerlogstream    Object{}    Interaction interface for the program
+
+// Inside dockerlogstream there are two functions and two properties available:
+// Message                Object{}  Message as struct as specified in types.go
+// Hostname               string    Hostname of the machine the program is running on
+// SendLogLine(string)              Pass your processed log line to this function
+// SkipLogLine()                    If you do filtering in here you can skip lines with this function
+```
+
+Given this you can do a very simple line formatter using this JavaScript code:
+
+```javascript
+var message = dockerlogstream.Message;
+dockerlogstream.SendLogLine(
+  message.Time.Format("Jan 2 15:04:05") + " " +
+  dockerlogstream.Hostname + " " +
+  message.Container.Names[0].substring(1) + ": " +
+  message.Data);
+```

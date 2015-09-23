@@ -1,18 +1,32 @@
 package main
 
-func formatLogLine(m *message) (string, error) {
-	jsVM.Set("hostname", hostname)
-	jsVM.Set("message", *m)
+type jsVMController struct {
+	logLine        string
+	logLineSkipped bool
+	Message        message
+	Hostname       string
+}
 
-	retVal, err := jsVM.Run(jsLineConverter)
-	if err != nil {
-		return "", err
+func (j *jsVMController) SendLogLine(line string) {
+	j.logLine = line
+}
+
+func (j *jsVMController) SkipLogLine() {
+	j.logLineSkipped = true
+}
+
+func formatLogLine(m *message) (string, bool, error) {
+	controller := &jsVMController{
+		Message:  *m,
+		Hostname: hostname,
 	}
 
-	logLine, err := retVal.ToString()
+	jsVM.Set("dockerlogstream", controller)
+
+	_, err := jsVM.Run(jsLineConverter)
 	if err != nil {
-		return "", err
+		return "", false, err
 	}
 
-	return logLine, nil
+	return controller.logLine, controller.logLineSkipped, nil
 }
