@@ -99,7 +99,12 @@ func main() {
 						Stderr:       true,
 					})
 
-					log.Printf("ERROR: Unable to attach or attach ended for container %s: %s", containerID, err)
+					if err == nil {
+						log.Printf("INFO: Attachment to container %s ended", containerID)
+					} else {
+						log.Printf("ERROR: Attachment for container %s ended with error: %s", containerID, err)
+					}
+
 					receiveChannelsLock.Lock()
 					delete(receiveChannels, containerID)
 					receiveChannelsLock.Unlock()
