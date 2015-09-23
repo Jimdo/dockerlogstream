@@ -1,4 +1,9 @@
 
+0.2.1 / 2015-09-23
+==================
+
+  * Do not log errors when attachment ends w/o error
+
 0.2.0 / 2015-09-23
 ==================
 
