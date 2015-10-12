@@ -1,0 +1,14 @@
+language: go
+
+go:
+  - 1.5
+  - tip
+
+install:
+  - go get github.com/tools/godep
+  - godep restore
+  - go install github.com/onsi/ginkgo/ginkgo
+
+script:
+  - ginkgo -cover -failOnPending
+  - go build ./...
