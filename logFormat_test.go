@@ -10,8 +10,10 @@ import (
 )
 
 const benchmarkLogFormatScript = `
-container_name = message.Container.Names[0].substring(1)
-result = "<22> " + message.Time.Format("Jan 2 15:04:05") + " " + hostname + " " + container_name + ": " + message.Data;
+var message = dockerlogstream.Message;
+var container_name = message.Container.Names[0].substring(1);
+dockerlogstream.SendLogLine("<22> " + message.Time.Format("Jan 2 15:04:05") + " " +
+	dockerlogstream.Hostname + " " + container_name + ": " + message.Data);
 `
 
 func BenchmarkFormatLogLine(b *testing.B) {
@@ -31,7 +33,8 @@ func BenchmarkFormatLogLine(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		if _, err := formatLogLine(m); err != nil {
+		if _, _, err := formatLogLine(m); err != nil {
+			log.Printf("ERR: %s", err)
 			b.Fail()
 		}
 	}
