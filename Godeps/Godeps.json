@@ -1,14 +1,15 @@
 {
 	"ImportPath": "github.com/Jimdo/dockerlogstream",
-	"GoVersion": "go1.5.1",
+	"GoVersion": "go1.5.2",
 	"Deps": [
 		{
 			"ImportPath": "github.com/Luzifer/rconfig",
-			"Rev": "0c78105a26af5663b6bb2c5be1fed4ed7d81d687"
+			"Comment": "v1.0.2",
+			"Rev": "d194dded1e1c7630486e642cacc09400f94f32a2"
 		},
 		{
 			"ImportPath": "github.com/cenkalti/backoff",
-			"Rev": "6c45d6bc1e78d94431dff8fc28a99f20bafa355a"
+			"Rev": "4dc77674aceaabba2c7e3da25d4c823edfb73f99"
 		},
 		{
 			"ImportPath": "github.com/fsouza/go-dockerclient",
@@ -16,13 +17,13 @@
 		},
 		{
 			"ImportPath": "github.com/onsi/ginkgo",
-			"Comment": "v1.2.0-8-g25380c6",
-			"Rev": "25380c62e61d3f90436be125b8127dbae578fdef"
+			"Comment": "v1.2.0-14-g1b59c57",
+			"Rev": "1b59c57df76ede42c08590546916e6a18685857d"
 		},
 		{
 			"ImportPath": "github.com/onsi/gomega",
-			"Comment": "v1.0-50-gd6c945f",
-			"Rev": "d6c945f9fdbf6cad99e85b0feff591caa268e0db"
+			"Comment": "v1.0-65-g0652f5f",
+			"Rev": "0652f5f3ba4e1226d4e7811215d3c2f80d37f919"
 		},
 		{
 			"ImportPath": "github.com/robertkrimen/otto",
@@ -30,7 +31,11 @@
 		},
 		{
 			"ImportPath": "github.com/spf13/pflag",
-			"Rev": "67cbc198fd11dab704b214c1e629a97af392c085"
+			"Rev": "b084184666e02084b8ccb9b704bf0d79c466eb1d"
+		},
+		{
+			"ImportPath": "gopkg.in/yaml.v2",
+			"Rev": "53feefa2559fb8dfa8d81baad31be332c97d6c77"
 		}
 	]
 }
