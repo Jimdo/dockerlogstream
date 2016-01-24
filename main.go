@@ -34,16 +34,14 @@ type config struct {
 	SysLogEndpoint     string `flag:"endpoint" description:"TCP/plain capable syslog endpoint (PaperTrail, Loggly, ...)"`
 }
 
-func init() {
+func main() {
 	rconfig.Parse(&cfg)
 
 	// Transistion for deprecated --papertrail-endpoint parameter
 	if cfg.SysLogEndpoint == "" && cfg.PapertrailEndpoint != "" {
 		cfg.SysLogEndpoint = cfg.PapertrailEndpoint
 	}
-}
 
-func main() {
 	logstream = make(chan *message, 5000)
 
 	jsLineConverter, err = jsVM.Compile(cfg.LineConverter, nil)
