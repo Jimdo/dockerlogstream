@@ -1,4 +1,9 @@
 
+0.3.1 / 2016-01-24
+==================
+
+  * Fixed tests by not parsing parameters in init
+
 0.3.0 / 2016-01-24
 ==================
 
