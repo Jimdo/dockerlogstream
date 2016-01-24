@@ -27,14 +27,23 @@ var (
 )
 
 type config struct {
-	PapertrailEndpoint string `flag:"papertrail-endpoint" description:"Logging target in PaperTrail (TCP, Plain)"`
+	PapertrailEndpoint string `flag:"papertrail-endpoint" description:"[DEPRECATED] Logging target in PaperTrail (TCP, Plain)"`
 	DockerAPI          string `flag:"docker-endpoint" default:"/var/run/docker.sock" description:"Address of docker endpoint to use"`
 	Testing            bool   `flag:"testing" default:"false" description:"Do not stream but write to STDOUT"`
 	LineConverter      string `flag:"line-converter" default:"lineconverter.js" description:"Sets the JavaScript to compile the log line to be sent"`
+	SysLogEndpoint     string `flag:"endpoint" description:"TCP/plain capable syslog endpoint (PaperTrail, Loggly, ...)"`
+}
+
+func init() {
+	rconfig.Parse(&cfg)
+
+	// Transistion for deprecated --papertrail-endpoint parameter
+	if cfg.SysLogEndpoint == "" && cfg.PapertrailEndpoint != "" {
+		cfg.SysLogEndpoint = cfg.PapertrailEndpoint
+	}
 }
 
 func main() {
-	rconfig.Parse(&cfg)
 	logstream = make(chan *message, 5000)
 
 	jsLineConverter, err = jsVM.Compile(cfg.LineConverter, nil)
@@ -56,7 +65,7 @@ func main() {
 		go ta.Stream(logstream)
 	} else {
 		// Create sending part of the logger
-		sl, err := NewSyslogAdapter(cfg.PapertrailEndpoint)
+		sl, err := NewSyslogAdapter(cfg.SysLogEndpoint)
 		if err != nil {
 			log.Fatalf("Unable to create logging adapter: %s", err)
 		}

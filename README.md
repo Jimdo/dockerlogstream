@@ -5,7 +5,7 @@
 
 # Jimdo / dockerlogstream
 
-This project is a spike to replace the flaky logspout container. The daemon can be compiled statically and then run on every ECS cluster machine to fetch logs from every running Docker container. The logs afterwards get streamed to PaperTrail using TCP connections.
+This project is a spike to replace the flaky logspout container. The daemon can be compiled statically and then run on every ECS cluster machine to fetch logs from every running Docker container. The logs afterwards get streamed to PaperTrail, Loggly or other services capable of receiving TCP plaintext syslog messages using TCP connections.
 
 ## Usage
 
@@ -25,13 +25,13 @@ TimeoutStopSec=0
 Restart=always
 RestartSec=30
 SyslogIdentifier=dockerlogstream
-ExecStart=/usr/local/bin/dockerlogstream --papertrail-endpoint=...
+ExecStart=/usr/local/bin/dockerlogstream --endpoint=...
 ```
 
 ### As a docker container
 
 ```bash
-# docker run -ti -v /var/run/docker.sock:/var/run/docker.sock Jimdo/dockerlogstream --papertrail-endpoint=...
+# docker run -ti -v /var/run/docker.sock:/var/run/docker.sock Jimdo/dockerlogstream --endpoint=...
 ```
 
 ## JavaScript line formatter
@@ -59,3 +59,5 @@ dockerlogstream.SendLogLine(
   message.Container.Names[0].substring(1) + ": " +
   message.Data);
 ```
+
+For more examples see the `example` folder in this repository.
