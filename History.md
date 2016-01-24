@@ -1,4 +1,10 @@
 
+0.3.0 / 2016-01-24
+==================
+
+  * Added examples for lineparser
+  * Renamed endpoint parameter to make it more obvious not only PaperTrail is supported as a remote service
+
 0.2.1 / 2015-09-23
 ==================
 
