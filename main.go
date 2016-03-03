@@ -1,29 +1,33 @@
 package main
 
 import (
+	"bytes"
+	"fmt"
 	"log"
+	"net"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/Luzifer/rconfig"
+	"github.com/fluent/fluent-logger-golang/fluent"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/robertkrimen/otto"
 )
 
 var (
-	ProjectVersion = "dev"
-	ProjectBuild   = "HEAD"
+	version = "dev"
 
 	logstream chan *message
 	cfg       config
 	client    *docker.Client
 	err       error
 
-	receiveChannels     = map[string]*bufferedLogMessageWriter{}
-	receiveChannelsLock = &sync.RWMutex{}
-
 	jsVM            = otto.New()
 	jsLineConverter *otto.Script
+
+	containerCache     = map[string]*docker.Container{}
+	containerCacheLock sync.RWMutex
 )
 
 type config struct {
@@ -32,6 +36,7 @@ type config struct {
 	Testing            bool   `flag:"testing" default:"false" description:"Do not stream but write to STDOUT"`
 	LineConverter      string `flag:"line-converter" default:"lineconverter.js" description:"Sets the JavaScript to compile the log line to be sent"`
 	SysLogEndpoint     string `flag:"endpoint" description:"TCP/plain capable syslog endpoint (PaperTrail, Loggly, ...)"`
+	ListenAddress      string `flag:"listen" default:"localhost:24224" description:"Listen address for fluentd protocol"`
 }
 
 func main() {
@@ -49,7 +54,7 @@ func main() {
 		log.Fatalf("Unable to parse line converter script: %s", err)
 	}
 
-	log.Printf("Started dockerlogstream %s (%s)", ProjectVersion, ProjectBuild)
+	log.Printf("Started dockerlogstream %s", version)
 
 	// Connect to Docker socket
 	client, err = docker.NewClient("unix://" + cfg.DockerAPI)
@@ -70,86 +75,102 @@ func main() {
 		go sl.Stream(logstream)
 	}
 
-	for {
-		containers, err := listContainers()
-		if err != nil {
-			log.Fatalf("Unable to list containers: %s", err)
-		}
-
-		touched := []string{}
-		for _, container := range containers {
-			touched = append(touched, container.ID)
-
-			// If we don't have a channel for this container create it
-			if _, ok := receiveChannels[container.ID]; !ok {
-				log.Printf("INFO: Found container %s, attaching...", container.ID)
-				receiveChannelsLock.Lock()
-				receiveChannels[container.ID] = &bufferedLogMessageWriter{
-					channel:   logstream,
-					container: container,
-					buffer:    []byte{},
-				}
-				receiveChannelsLock.Unlock()
-
-				go func(containerID string) {
-					receiveChannelsLock.RLock()
-					stream := receiveChannels[containerID]
-					receiveChannelsLock.RUnlock()
-
-					err := client.AttachToContainer(docker.AttachToContainerOptions{
-						Container:    containerID,
-						OutputStream: stream,
-						ErrorStream:  stream,
-						Logs:         false,
-						Stream:       true,
-						Stdout:       true,
-						Stderr:       true,
-					})
-
-					if err == nil {
-						log.Printf("INFO: Attachment to container %s ended", containerID)
-					} else {
-						log.Printf("ERROR: Attachment for container %s ended with error: %s", containerID, err)
-					}
-
-					receiveChannelsLock.Lock()
-					delete(receiveChannels, containerID)
-					receiveChannelsLock.Unlock()
-				}(container.ID)
-			}
-
-		}
-
-		for k := range receiveChannels {
-			if !inSlice(touched, k) {
-				log.Printf("INFO: Missing container %s, removing logger...", k)
-				receiveChannelsLock.Lock()
-				delete(receiveChannels, k)
-				receiveChannelsLock.Unlock()
-			}
-		}
-		time.Sleep(time.Second)
-	}
-}
-
-func listContainers() ([]docker.APIContainers, error) {
-	containers, err := client.ListContainers(docker.ListContainersOptions{
-		All: false, // Do not list dead containers
-	})
-
+	fluentServer, err := net.Listen("tcp", cfg.ListenAddress)
 	if err != nil {
-		return []docker.APIContainers{}, err
+		log.Fatalf("Unable to listen: %s", err)
 	}
 
-	return containers, nil
+	for {
+		conn, err := fluentServer.Accept()
+		if err != nil {
+			log.Fatalf("Unable to accept tcp connection: %s", err)
+		}
+
+		go handleFluentdForwardConnection(conn)
+	}
 }
 
-func inSlice(s []string, k string) bool {
-	for _, v := range s {
-		if v == k {
-			return true
+func handleFluentdForwardConnection(c net.Conn) {
+	defer c.Close()
+	buffer := bytes.NewBuffer([]byte{})
+	tmp := make([]byte, 256)
+
+	for {
+		c.SetReadDeadline(time.Now().Add(100 * time.Millisecond))
+
+		n, err := c.Read(tmp)
+		if err != nil {
+			if oe, ok := err.(*net.OpError); ok {
+				if oe.Temporary() {
+					continue
+				}
+			}
+			break
+		}
+		buffer.Write(tmp[:n])
+
+		for {
+			var (
+				msg         fluent.Message
+				newBytes    []byte
+				storedBytes = buffer.Bytes()
+			)
+
+			newBytes, err = msg.UnmarshalMsg(storedBytes)
+			if err != nil {
+				buffer = bytes.NewBuffer(storedBytes)
+				break
+			}
+
+			buffer = bytes.NewBuffer(newBytes)
+			if err := handleLogMessage(msg); err != nil {
+				log.Printf("Unable to process log message: %#v -- ERR=%s", msg, err)
+			}
 		}
 	}
+}
 
-	return false
+func handleLogMessage(msg fluent.Message) error {
+	/*
+	 * fluent.Message{
+	 *   Tag:"docker.51081fbd2352",
+	 *   Time:1457009998,
+	 *   Record:map[string]interface {}{
+	 *     "log":"foobar\r",
+	 *     "container_id":"51081fbd2352f70ddba441d6b2f91d24bdddc9a5ac32e82c5c5893ff9bf0de6b",
+	 *     "container_name":"/tiny_williams",
+	 *     "source":"stdout"
+	 *   },
+	 *   Option:interface {}(nil)
+	 * }
+	 */
+	data := msg.Record.(map[string]interface{})
+	container, err := getContainerInformation(data["container_id"].(string))
+	if err != nil {
+		return fmt.Errorf("Unable to fetch container information: %s", err)
+	}
+
+	logstream <- &message{
+		Container: container,
+		Data:      strings.TrimSpace(data["log"].(string)),
+		Time:      time.Unix(msg.Time, 0),
+	}
+
+	return nil
+}
+
+func getContainerInformation(id string) (*docker.Container, error) {
+	containerCacheLock.RLock()
+	if c, ok := containerCache[id]; ok {
+		containerCacheLock.RUnlock()
+		return c, nil
+	}
+	containerCacheLock.RUnlock()
+
+	container, err := client.InspectContainer(id)
+
+	containerCacheLock.Lock()
+	containerCache[id] = container
+	containerCacheLock.Unlock()
+	return container, err
 }

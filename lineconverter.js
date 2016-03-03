@@ -1,6 +1,6 @@
 // Service / Component
 var message = dockerlogstream.Message;
-var container_name = message.Container.Names[0].substring(1);
+var container_name = message.Container.Name.substring(1);
 var parsed_container = container_name.match(/-[0-9]+-([^_]+)--([^_]+)-[a-z0-9]+$/);
 
 if (parsed_container !== null) {

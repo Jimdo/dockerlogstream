@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/Jimdo/dockerlogstream",
-	"GoVersion": "go1.5.2",
+	"GoVersion": "go1.6",
 	"Deps": [
 		{
 			"ImportPath": "github.com/Luzifer/rconfig",
@@ -10,6 +10,11 @@
 		{
 			"ImportPath": "github.com/cenkalti/backoff",
 			"Rev": "4dc77674aceaabba2c7e3da25d4c823edfb73f99"
+		},
+		{
+			"ImportPath": "github.com/fluent/fluent-logger-golang/fluent",
+			"Comment": "v1.1.0-14-g8ba04e2",
+			"Rev": "8ba04e26e7839fc5ccdae3a1d2e0d77515af0f32"
 		},
 		{
 			"ImportPath": "github.com/fsouza/go-dockerclient",
@@ -26,12 +31,21 @@
 			"Rev": "0652f5f3ba4e1226d4e7811215d3c2f80d37f919"
 		},
 		{
+			"ImportPath": "github.com/philhofer/fwd",
+			"Rev": "98c11a7a6ec829d672b03833c3d69a7fae1ca972"
+		},
+		{
 			"ImportPath": "github.com/robertkrimen/otto",
 			"Rev": "47082f430885e505c18bbedc3e2b336a968a50dd"
 		},
 		{
 			"ImportPath": "github.com/spf13/pflag",
 			"Rev": "b084184666e02084b8ccb9b704bf0d79c466eb1d"
+		},
+		{
+			"ImportPath": "github.com/tinylib/msgp/msgp",
+			"Comment": "v1.0-beta-4-g0d29f4b",
+			"Rev": "0d29f4bb1d9c5d1ad8ad54e0507ca54c0fa50482"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",

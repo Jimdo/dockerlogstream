@@ -5,7 +5,7 @@
 
 # Jimdo / dockerlogstream
 
-This project is a spike to replace the flaky logspout container. The daemon can be compiled statically and then run on every ECS cluster machine to fetch logs from every running Docker container. The logs afterwards get streamed to PaperTrail, Loggly or other services capable of receiving TCP plaintext syslog messages using TCP connections.
+This project makes use of the fluentd log-driver implemented in Docker v1.8. Instead of fetching the logs using the `docker.sock` or having to run a ruby container with fluentd you can run this as a single binary on your system. The log format is 100% compatible to the format used by fluentd.
 
 ## Usage
 
@@ -31,7 +31,15 @@ ExecStart=/usr/local/bin/dockerlogstream --endpoint=...
 ### As a docker container
 
 ```bash
-# docker run -ti -v /var/run/docker.sock:/var/run/docker.sock Jimdo/dockerlogstream --endpoint=...
+# docker run -ti -v /var/run/docker.sock:/var/run/docker.sock -p 127.0.0.1:24224:24224 Jimdo/dockerlogstream --endpoint=...
+```
+
+### Configuring your containers to log into the dockerlogstream
+
+You need to add the option `--log-driver=fluentd` to you `docker run` command:
+
+```bash
+# docker run --log-driver=fluentd --rm -ti alpine echo "Hello World!"
 ```
 
 ## JavaScript line formatter
