@@ -93,9 +93,9 @@ func main() {
 func handleFluentdForwardConnection(c net.Conn) {
 	defer c.Close()
 	buffer := bytes.NewBuffer([]byte{})
+	tmp := make([]byte, 256)
 
 	for {
-		tmp := make([]byte, 256)
 		c.SetReadDeadline(time.Now().Add(100 * time.Millisecond))
 
 		n, err := c.Read(tmp)
