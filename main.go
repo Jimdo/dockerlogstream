@@ -129,6 +129,19 @@ func handleFluentdForwardConnection(c net.Conn) {
 }
 
 func handleLogMessage(msg fluent.Message) error {
+	/*
+	 * fluent.Message{
+	 *   Tag:"docker.51081fbd2352",
+	 *   Time:1457009998,
+	 *   Record:map[string]interface {}{
+	 *     "log":"foobar\r",
+	 *     "container_id":"51081fbd2352f70ddba441d6b2f91d24bdddc9a5ac32e82c5c5893ff9bf0de6b",
+	 *     "container_name":"/tiny_williams",
+	 *     "source":"stdout"
+	 *   },
+	 *   Option:interface {}(nil)
+	 * }
+	 */
 	data := msg.Record.(map[string]interface{})
 	container, err := getContainerInformation(data["container_id"].(string))
 	if err != nil {
