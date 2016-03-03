@@ -15,8 +15,7 @@ import (
 )
 
 var (
-	ProjectVersion = "dev"
-	ProjectBuild   = "HEAD"
+	version = "dev"
 
 	logstream chan *message
 	cfg       config
@@ -53,7 +52,7 @@ func main() {
 		log.Fatalf("Unable to parse line converter script: %s", err)
 	}
 
-	log.Printf("Started dockerlogstream %s (%s)", ProjectVersion, ProjectBuild)
+	log.Printf("Started dockerlogstream %s", version)
 
 	// Connect to Docker socket
 	client, err = docker.NewClient("unix://" + cfg.DockerAPI)
