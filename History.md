@@ -1,4 +1,10 @@
 
+1.0.0 / 2016-03-03
+==================
+
+  * Moved versioning to different system
+  * Migrated from docker attach to fluentd log-driver
+
 0.3.1 / 2016-01-24
 ==================
 
