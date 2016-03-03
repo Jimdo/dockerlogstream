@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Luzifer/rconfig"
@@ -25,7 +26,8 @@ var (
 	jsVM            = otto.New()
 	jsLineConverter *otto.Script
 
-	containerCache = map[string]*docker.Container{}
+	containerCache     = map[string]*docker.Container{}
+	containerCacheLock sync.RWMutex
 )
 
 type config struct {
@@ -158,12 +160,17 @@ func handleLogMessage(msg fluent.Message) error {
 }
 
 func getContainerInformation(id string) (*docker.Container, error) {
+	containerCacheLock.RLock()
 	if c, ok := containerCache[id]; ok {
+		containerCacheLock.RUnlock()
 		return c, nil
 	}
+	containerCacheLock.RUnlock()
 
 	container, err := client.InspectContainer(id)
 
+	containerCacheLock.Lock()
 	containerCache[id] = container
+	containerCacheLock.Unlock()
 	return container, err
 }
