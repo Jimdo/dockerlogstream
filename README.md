@@ -42,6 +42,12 @@ You need to add the option `--log-driver=fluentd` to you `docker run` command:
 # docker run --log-driver=fluentd --rm -ti alpine echo "Hello World!"
 ```
 
+If you want to use this method for all containers on your host you also can modify the `DOCKER_OPTS` variable for your docker deamon:
+
+```
+DOCKER_OPTS="--log-driver=fluentd"
+```
+
 ## JavaScript line formatter
 
 The log line formatting (and filtering) are done by simple JavaScript files. One example for a more complex solution can be found in the `lineconverter.js` file inside this repository.
