@@ -1,3 +1,7 @@
+# 1.0.2 / 2016-06-06
+
+  * Fixed vendoring and travis build
+
 # 1.0.1 / 2016-06-06
 
   * Migrated to go1.6 vendoring
