@@ -1,6 +1,7 @@
 {
 	"ImportPath": "github.com/Jimdo/dockerlogstream",
 	"GoVersion": "go1.6",
+	"GodepVersion": "v62",
 	"Deps": [
 		{
 			"ImportPath": "github.com/Luzifer/rconfig",
