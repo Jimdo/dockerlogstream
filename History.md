@@ -1,3 +1,8 @@
+# 1.0.1 / 2016-06-06
+
+  * Migrated to go1.6 vendoring
+  * Added global configuration option to README
+
 
 1.0.0 / 2016-03-03
 ==================
