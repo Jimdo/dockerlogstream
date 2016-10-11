@@ -12,3 +12,4 @@ install:
 script:
   - ginkgo -cover -failOnPending
   - go build ./...
+  - ./publish.sh
