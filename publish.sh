@@ -1,8 +1,10 @@
-#!/bin/sh -e
+#!/bin/sh 
 
 VERSION=$(git describe --tags --exact-match)
 REPO=$(basename $(pwd))
 ARCHS="linux/386 linux/amd64 linux/arm darwin/amd64 darwin/386"
+
+set -e
 
 if [ -z "${VERSION}" ]; then
 	echo "No tag present, stopping build now."
@@ -10,7 +12,7 @@ if [ -z "${VERSION}" ]; then
 fi
 
 if [ -z "${GITHUB_TOKEN}" ]; then
-	echo "PLease set \$GITHUB_TOKEN environment variable"
+	echo "Please set \$GITHUB_TOKEN environment variable"
 	exit 1
 fi
 
