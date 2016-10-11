@@ -1,3 +1,7 @@
+# 1.0.3 / 2016-10-11
+
+  * Build and push binaries to GH Releases
+
 # 1.0.2 / 2016-06-06
 
   * Fixed vendoring and travis build
