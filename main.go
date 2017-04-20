@@ -43,7 +43,7 @@ func main() {
 	rconfig.Parse(&cfg)
 
 	// Transistion for deprecated --papertrail-endpoint parameter
-	if cfg.SysLogEndpoint[0] == "" && cfg.PapertrailEndpoint != "" {
+	if len(cfg.SysLogEndpoint) == 0 && cfg.PapertrailEndpoint != "" {
 		cfg.SysLogEndpoint[0] = cfg.PapertrailEndpoint
 	}
 
