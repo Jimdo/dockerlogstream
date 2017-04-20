@@ -31,12 +31,11 @@ var (
 )
 
 type config struct {
-	PapertrailEndpoint string   `flag:"papertrail-endpoint" description:"[DEPRECATED] Logging target in PaperTrail (TCP, Plain)"`
-	DockerAPI          string   `flag:"docker-endpoint" default:"/var/run/docker.sock" description:"Address of docker endpoint to use"`
-	Testing            bool     `flag:"testing" default:"false" description:"Do not stream but write to STDOUT"`
-	LineConverter      string   `flag:"line-converter" default:"lineconverter.js" description:"Sets the JavaScript to compile the log line to be sent"`
-	SysLogEndpoint     []string `flag:"endpoint" description:"TCP/plain capable syslog endpoint (PaperTrail, Loggly, ...)"`
-	ListenAddress      string   `flag:"listen" default:"localhost:24224" description:"Listen address for fluentd protocol"`
+	DockerAPI      string   `flag:"docker-endpoint" default:"/var/run/docker.sock" description:"Address of docker endpoint to use"`
+	Testing        bool     `flag:"testing" default:"false" description:"Do not stream but write to STDOUT"`
+	LineConverter  string   `flag:"line-converter" default:"lineconverter.js" description:"Sets the JavaScript to compile the log line to be sent"`
+	SysLogEndpoint []string `flag:"endpoint" description:"TCP/plain capable syslog endpoint (PaperTrail, Loggly, ...)"`
+	ListenAddress  string   `flag:"listen" default:"localhost:24224" description:"Listen address for fluentd protocol"`
 }
 
 func main() {
@@ -48,13 +47,6 @@ func main() {
 	}
 
 	logstream = make([]chan *message, sysLogEndpointCount)
-
-	// Transistion for deprecated --papertrail-endpoint parameter
-	if sysLogEndpointCount == 0 && cfg.PapertrailEndpoint != "" {
-		cfg.SysLogEndpoint[0] = cfg.PapertrailEndpoint
-		logstream = make([]chan *message, 1)
-		logstream[0] = make(chan *message, 5000)
-	}
 
 	for i := 0; i < sysLogEndpointCount; i++ {
 		logstream[i] = make(chan *message, 5000)
