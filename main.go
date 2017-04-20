@@ -18,7 +18,7 @@ import (
 var (
 	version = "dev"
 
-	logstream chan *message
+	logstream []chan *message
 	cfg       config
 	client    *docker.Client
 	err       error
@@ -42,12 +42,23 @@ type config struct {
 func main() {
 	rconfig.Parse(&cfg)
 
-	// Transistion for deprecated --papertrail-endpoint parameter
-	if len(cfg.SysLogEndpoint) == 0 && cfg.PapertrailEndpoint != "" {
-		cfg.SysLogEndpoint[0] = cfg.PapertrailEndpoint
+	sysLogEndpointCount := len(cfg.SysLogEndpoint)
+	if cfg.Testing {
+		sysLogEndpointCount = 1
 	}
 
-	logstream = make(chan *message, 5000)
+	logstream = make([]chan *message, sysLogEndpointCount)
+
+	// Transistion for deprecated --papertrail-endpoint parameter
+	if sysLogEndpointCount == 0 && cfg.PapertrailEndpoint != "" {
+		cfg.SysLogEndpoint[0] = cfg.PapertrailEndpoint
+		logstream = make([]chan *message, 1)
+		logstream[0] = make(chan *message, 5000)
+	}
+
+	for i := 0; i < sysLogEndpointCount; i++ {
+		logstream[i] = make(chan *message, 5000)
+	}
 
 	jsLineConverter, err = jsVM.Compile(cfg.LineConverter, nil)
 	if err != nil {
@@ -65,15 +76,15 @@ func main() {
 	if cfg.Testing {
 		// Log to STDOUT instead of streaming
 		ta := TestAdapter{}
-		go ta.Stream(logstream)
+		go ta.Stream(logstream[0])
 	} else {
 		// Create sending part of the logger
-		for _, endpoint := range cfg.SysLogEndpoint {
+		for i, endpoint := range cfg.SysLogEndpoint {
 			sl, err := NewSyslogAdapter(endpoint)
 			if err != nil {
 				log.Fatalf("Unable to create logging adapter: %s", err)
 			}
-			go sl.Stream(logstream)
+			go sl.Stream(logstream[i])
 		}
 	}
 
@@ -152,10 +163,12 @@ func handleLogMessage(msg fluent.Message) error {
 		return fmt.Errorf("Unable to fetch container information: %s", err)
 	}
 
-	logstream <- &message{
-		Container: container,
-		Data:      strings.TrimSpace(data["log"].(string)),
-		Time:      time.Unix(msg.Time, 0),
+	for i := range logstream {
+		logstream[i] <- &message{
+			Container: container,
+			Data:      strings.TrimSpace(data["log"].(string)),
+			Time:      time.Unix(msg.Time, 0),
+		}
 	}
 
 	return nil
