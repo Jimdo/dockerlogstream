@@ -18,7 +18,7 @@ import (
 var (
 	version = "dev"
 
-	logstream chan *message
+	logstream []chan *message
 	cfg       config
 	client    *docker.Client
 	err       error
@@ -31,23 +31,26 @@ var (
 )
 
 type config struct {
-	PapertrailEndpoint string `flag:"papertrail-endpoint" description:"[DEPRECATED] Logging target in PaperTrail (TCP, Plain)"`
-	DockerAPI          string `flag:"docker-endpoint" default:"/var/run/docker.sock" description:"Address of docker endpoint to use"`
-	Testing            bool   `flag:"testing" default:"false" description:"Do not stream but write to STDOUT"`
-	LineConverter      string `flag:"line-converter" default:"lineconverter.js" description:"Sets the JavaScript to compile the log line to be sent"`
-	SysLogEndpoint     string `flag:"endpoint" description:"TCP/plain capable syslog endpoint (PaperTrail, Loggly, ...)"`
-	ListenAddress      string `flag:"listen" default:"localhost:24224" description:"Listen address for fluentd protocol"`
+	DockerAPI      string   `flag:"docker-endpoint" default:"/var/run/docker.sock" description:"Address of docker endpoint to use"`
+	Testing        bool     `flag:"testing" default:"false" description:"Do not stream but write to STDOUT"`
+	LineConverter  string   `flag:"line-converter" default:"lineconverter.js" description:"Sets the JavaScript to compile the log line to be sent"`
+	SysLogEndpoint []string `flag:"endpoint" description:"TCP/plain capable syslog endpoint (PaperTrail, Loggly, ...)"`
+	ListenAddress  string   `flag:"listen" default:"localhost:24224" description:"Listen address for fluentd protocol"`
 }
 
 func main() {
 	rconfig.Parse(&cfg)
 
-	// Transistion for deprecated --papertrail-endpoint parameter
-	if cfg.SysLogEndpoint == "" && cfg.PapertrailEndpoint != "" {
-		cfg.SysLogEndpoint = cfg.PapertrailEndpoint
+	sysLogEndpointCount := len(cfg.SysLogEndpoint)
+	if cfg.Testing {
+		sysLogEndpointCount = 1
 	}
 
-	logstream = make(chan *message, 5000)
+	logstream = make([]chan *message, sysLogEndpointCount)
+
+	for i := 0; i < sysLogEndpointCount; i++ {
+		logstream[i] = make(chan *message, 5000)
+	}
 
 	jsLineConverter, err = jsVM.Compile(cfg.LineConverter, nil)
 	if err != nil {
@@ -65,14 +68,16 @@ func main() {
 	if cfg.Testing {
 		// Log to STDOUT instead of streaming
 		ta := TestAdapter{}
-		go ta.Stream(logstream)
+		go ta.Stream(logstream[0])
 	} else {
 		// Create sending part of the logger
-		sl, err := NewSyslogAdapter(cfg.SysLogEndpoint)
-		if err != nil {
-			log.Fatalf("Unable to create logging adapter: %s", err)
+		for i, endpoint := range cfg.SysLogEndpoint {
+			sl, err := NewSyslogAdapter(endpoint)
+			if err != nil {
+				log.Fatalf("Unable to create logging adapter: %s", err)
+			}
+			go sl.Stream(logstream[i])
 		}
-		go sl.Stream(logstream)
 	}
 
 	fluentServer, err := net.Listen("tcp", cfg.ListenAddress)
@@ -150,10 +155,12 @@ func handleLogMessage(msg fluent.Message) error {
 		return fmt.Errorf("Unable to fetch container information: %s", err)
 	}
 
-	logstream <- &message{
-		Container: container,
-		Data:      strings.TrimSpace(data["log"].(string)),
-		Time:      time.Unix(msg.Time, 0),
+	for i := range logstream {
+		logstream[i] <- &message{
+			Container: container,
+			Data:      strings.TrimSpace(data["log"].(string)),
+			Time:      time.Unix(msg.Time, 0),
+		}
 	}
 
 	return nil
